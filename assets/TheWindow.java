@@ -15,7 +15,7 @@ public class TheWindow extends JFrame {
     JTextArea Console = new JTextArea("This is console.",30,50);
     JavaCompiler jcr = ToolProvider.getSystemJavaCompiler();
     public final String author = "CFR_406";
-    public final String ver = "Beta 1.11.2";
+    public final String ver = "Beta 1.12";
     JScrollPane CP = new JScrollPane(Console);
     JButton load = new JButton("載入");
     JButton run = new JButton("執行");
