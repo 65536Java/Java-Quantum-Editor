@@ -1,6 +1,5 @@
 package assets;
 
-
 import javax.swing.*;
 import javax.tools.*;
 import java.awt.*;
@@ -44,7 +43,6 @@ public class TheWindow extends JFrame {
         catch (Exception exception) {
             // empty catch block
         }
-
         char[] a = new char[]{};
         StringBuffer sb = new StringBuffer();
         try {
@@ -86,10 +84,13 @@ public class TheWindow extends JFrame {
             JOptionPane.showMessageDialog(null,"Compilation failed!","Java Compiler",JOptionPane.ERROR_MESSAGE);
         }
     }
-    public TheWindow(){
+    public TheWindow(){/*
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        ImageIcon ico = new ImageIcon("\\icon.png");
+        this.setIconImage(ico.getImage());*/
         code.setFont(new Font(Font.SANS_SERIF,Font.BOLD,20));
         codeBar.setViewportView(code);
-        this.setTitle("EFJ v"+ver+" by YouTube:"+author);
+        this.setTitle("Java Quantum Editor v"+ver+" by YouTube:"+author);
         code.setFont(new Font(Font.SANS_SERIF,Font.BOLD,13));
         run.addActionListener((ActionEvent e)->{
             CMDManager cmd = new CMDManager();
