@@ -1,9 +1,6 @@
 package assets;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
 import javax.tools.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -11,75 +8,104 @@ import java.io.*;
 
 
 
+
 public class TheWindow extends JFrame {
+    static {
+        Main.set.Load();
+    }
+    JMenuBar jm = new JMenuBar();
+    JPanel japan = new JPanel();
+    JMenu[] jms = new JMenu[]{
+            new JMenu("File")
+    };
+    JPanel con = new JPanel();
+    JLabel co = new JLabel("Console");
+    JMenuItem[] jmis = new JMenuItem[]{
+            new JMenuItem("save")
+    };
+    l ls = new l();
     JTextArea Console = new JTextArea("This is console.",30,50);
     JavaCompiler jcr = ToolProvider.getSystemJavaCompiler();
-    public final String author = "CFR_406";
-    public final String ver = "Beta 1.12";
+    public final String author = "iert_MCPL";
+    public final String ver = "Beta 1.12.17";
     JScrollPane CP = new JScrollPane(Console);
-    JButton load = new JButton("載入");
-    JButton run = new JButton("執行");
-    JButton compile = new JButton("編譯");
-    JButton save = new JButton("儲存");
-    JTextArea code = new JTextArea("public class Main{\n    public static void main(String[] args)" +
-            "    {\n\n\n    }\n}",30,50);
-    JScrollPane codeBar = new JScrollPane(code);
+    JButton settings;
+    JButton load;
+    JButton run;
+    JButton compile;
+    JButton save;
+    JTextArea codes = new JTextArea("""
+            public class Main{
+                public static void main(String[] args)    {
+                int n = 0;
+                    while(true){
+                        n++;
+                        System.out.println(String.valueOf(n));
+                        if(n >= 100)break;
+                        try{
+                            Thread.sleep(100L);
+                        }catch(InterruptedException w){
+                            throw new RuntimeException(w);
+                        }
+                    }
+                }
+            }""",30,50);
+    JScrollPane codeBar = new JScrollPane(codes);
     File f = null;
-    private void autoIndent() {
-        // 简化示例：直接在插入新行时，添加4个空格的缩进
-        int pos = code.getCaretPosition();
-        if (pos > 0) {
-            try {
-                String prevChar = code.getText(pos - 1, 1);
-                if (prevChar.equals(" ")) {
-                        code.insert("    ", pos);
-                } // 插入4个空格
-            }catch (BadLocationException e1) {
-                e1.printStackTrace();
-            }
+    private File saveAs(String mode){
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(f);
         }
-    }
-    private File saveAs(){
+        catch (Exception exception) {
+
+        }
+        if(mode == "get" && this.f != null){
+            BufferedWriter bf = new BufferedWriter(fw);
+            try {
+                bf.write(codes.getText());
+                bf.flush();
+                bf.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            return this.f;
+        }
         JFileChooser jf = new JFileChooser();
         jf.showDialog( null,"Save");
         this.f = jf.getSelectedFile();
-        if(this.f== null){
-            try{
-                f.createNewFile();
-            }catch (Throwable t){}
-        }
+        if(this.f.getPath() == "" || this.f == null){this.f = null;return this.f;}
         File f = new File(this.f.getPath());
         if(!f.exists()){
             try{
                 f.createNewFile();
             }catch (Throwable t){}
         }
-        FileWriter fw = null;
+        char[] a = new char[]{};
+        StringBuffer sb = new StringBuffer();
         try {
             fw = new FileWriter(f);
         }
         catch (Exception exception) {
-            // empty catch block
+
         }
-        char[] a = new char[]{};
-        StringBuffer sb = new StringBuffer();
         try {
             BufferedWriter bf = new BufferedWriter(fw);
-            bf.write(code.getText());
+            bf.write(codes.getText());
             bf.flush();
             bf.close();
         } catch (IOException e) {}
         return f;
     }
-    String fread(File ff){
+    public static String fread(File ff){
         FileReader fr = null;
         try {
             fr = new FileReader(ff);
         }
         catch (Exception exception) {
-            // empty catch block
-        }
 
+        }
         char[] a = new char[]{};
         StringBuffer sb = new StringBuffer();
         try {
@@ -88,13 +114,37 @@ public class TheWindow extends JFrame {
             while ((line = bf.readLine()) != null) {
                 sb.append(line+"\n");
             }
-        } catch (IOException e) {}
-         /*for (char c : a) {
+        } catch (IOException e) {
 
-         }*/
+        }
         return sb.toString();
     }
     private void compile(){
+        Console.setText("");
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("javac", this.saveAs("get").getPath());
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+            Thread n = new Thread(()->{
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line;
+                try{
+                    compile.setEnabled(false);
+                    while ((line = reader.readLine()) != null) {
+                        Console.append(line+"\n");
+                    }
+                    int exitCode = process.waitFor();
+                    Console.append("\n\n\n[Java Compiler] Exited with code: " + exitCode);
+                    compile.setEnabled(true);
+                }catch (IOException | InterruptedException ioException){
+                    throw new RuntimeException(ioException);
+                }
+            });
+            n.start();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        File m = saveAs("get");
         int res = jcr.run( null, null, null,this.f.getPath());
         if (res == 0) {
             JOptionPane.showMessageDialog( null,"Compilation successful!","Java Compiler",JOptionPane.INFORMATION_MESSAGE);
@@ -102,24 +152,26 @@ public class TheWindow extends JFrame {
             JOptionPane.showMessageDialog( null,"Compilation failed!","Java Compiler",JOptionPane.ERROR_MESSAGE);
         }
     }
-    public TheWindow(){/*
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        ImageIcon ico = new ImageIcon("\\icon.png");
-        this.setIconImage(ico.getImage());*/
-        code.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { autoIndent(); }
-            public void removeUpdate(DocumentEvent e) { autoIndent(); }
-            public void changedUpdate(DocumentEvent e) {}
-        });
-        code.setFont(new Font(Font.SANS_SERIF,Font.BOLD,20));
-        codeBar.setViewportView(code);
+    public TheWindow(){
+        this.setBackground(Color.darkGray);
+        codeBar.setAutoscrolls(true);
+        save = new JButton(ls.ls[l.getlangnum(Main.lang,false)][3]);
+        run = new JButton(ls.ls[l.getlangnum(Main.lang,false)][2]);
+        load = new JButton(ls.ls[l.getlangnum(Main.lang,false)][4]);
+        compile = new JButton(ls.ls[l.getlangnum(Main.lang,false)][1]);
+        settings = new JButton(ls.ls[l.getlangnum(Main.lang,false)][5]);
+        Console.setFont(new Font(Font.MONOSPACED,Font.BOLD,15));
+        compile.setEnabled(Main.isJDK());
+        con.setLayout(new BorderLayout());
+        co.setFont(new Font(Font.SANS_SERIF,Font.ITALIC,15));
+        con.add(co,BorderLayout.NORTH);
+        run.setEnabled(Main.isJDK());
+        codes.setFont(new Font(Font.SANS_SERIF,Font.BOLD,20));
+        codeBar.setViewportView(codes);
+        
         this.setTitle("Java Quantum Editor v"+ver+" by YouTube:"+author);
-        code.setFont(new Font(Font.SANS_SERIF,Font.BOLD,13));
-        run.addActionListener((ActionEvent e)->{
-            CMDManager cmd = new CMDManager();
-            cmd.Run("java "+this.f.getPath());
-        } );
-        this.setSize(800,500);
+        codes.setFont(new Font(Font.SANS_SERIF,Font.BOLD,13));
+        this.setSize(1000,800);
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -134,60 +186,78 @@ public class TheWindow extends JFrame {
                 jf.showDialog( null,"Open .java file");
                 f = jf.getSelectedFile();
             }while (!f.getName().endsWith(".java"));
+
             try {
-                /*
-                fr = new FileReader(f);
-                BufferedReader bf = new BufferedReader(fr);
-                while ((str = bf.readLine()) != null){
-                    d.append(str);
-                    d.append("\n");
-                }*/
-            } catch (Exception ex) {}
-            try {
-                code.setText(fread(f));
+                codes.setText(fread(f));
             } catch (Exception ex) {}
             try {
                 fr.close();
             } catch (Exception ex) {}
         });
         this.CP.setViewportView(Console);
-        this.setLayout(new FlowLayout());
-        this.add(CP);
+        this.setLayout(new BorderLayout());
+
         codeBar.setLocation(this.getWidth() / 2,this.getHeight() / 2);
-        this.add(codeBar);
+
         compile.addActionListener((ActionEvent e)->{
             compile();
         } );
         codeBar.setSize(500,Integer.MAX_VALUE-10);
         compile.setLocation(this.getWidth() / 2,this.getHeight());
-        this.add(compile);
-        code.setEditable(stdlib.t);
+        codes.setEditable(true);
         save.addActionListener((ActionEvent e)->{
-            saveAs();
+            saveAs("save");
         });
         run.addActionListener((ActionEvent e)->{
             Console.setText("");
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder("java", saveAs().getPath());
+                ProcessBuilder processBuilder = new ProcessBuilder("java", this.saveAs("get").getPath());
                 processBuilder.redirectErrorStream(true);
                 Process process = processBuilder.start();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    Console.append(line+"\n");
-                }
-                int exitCode = process.waitFor();
-                Console.append("Exited with code: " + exitCode);
-            } catch (IOException | InterruptedException ex) {
+                Thread n = new Thread(()->{
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    String line;
+                    try{
+                        run.setEnabled(false);
+                        while ((line = reader.readLine()) != null) {
+                            Console.append(line+"\n");
+                        }
+                        int exitCode = process.waitFor();
+                        Console.append("\n\n\n[Java Virtual Machine] Exited with code: " + exitCode);
+                        run.setEnabled(true);
+                    }catch (IOException | InterruptedException ioException){
+                        throw new RuntimeException(ioException);
+                    }
+                });
+                n.start();
+            } catch (IOException ex) {
                 ex.printStackTrace();
             }
         });
-        this.add(CP);
-        this.add(load);
-        this.add(save);
-        Console.setEditable(stdlib.f);
-        this.add(run);
-        this.setVisible(stdlib.t);
-
+        settings.addActionListener((actionEvent)->{
+            new SettingsUI();
+        });
+        /*for(JMenu j : jms){
+            jm.add(j);
+        }*/
+        con.add(CP,BorderLayout.CENTER);
+        this.add(codeBar,BorderLayout.CENTER);
+        this.add(con,BorderLayout.EAST);
+        japan.add(load);
+        japan.add(save);
+        Console.setEditable(false);
+        japan.add(run);
+        japan.add(compile);
+        japan.add(settings);
+        japan.setBackground(Color.GRAY);
+        this.add(japan,BorderLayout.NORTH);
+        this.setVisible(true);
+    }
+    public void Ref(){
+        save.setText(ls.ls[l.getlangnum(Main.lang,false)][3]);
+        run.setText(ls.ls[l.getlangnum(Main.lang,false)][2]);
+        load.setText(ls.ls[l.getlangnum(Main.lang,false)][4]);
+        compile.setText(ls.ls[l.getlangnum(Main.lang,false)][1]);
+        settings.setText(ls.ls[l.getlangnum(Main.lang,false)][5]);
     }
 }
