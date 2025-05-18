@@ -30,7 +30,7 @@ public class Settings {
         }
         BufferedWriter bw = new BufferedWriter(fw);
         try {
-            bw.write(Main.lang);
+            bw.write((Main.lang=="zh") ? "" :"zh");
             bw.flush();
             bw.close();
         } catch (IOException e) {

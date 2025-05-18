@@ -1,32 +1,42 @@
+
 package assets;
 
-import javax.swing.*;
-import java.io.File;
 
+import java.io.File;
+import javax.swing.JOptionPane;
 
 public class Main {
     public static TheWindow s;
-    public static Settings set = new Settings(new File("Settings.txt"));
+    public static Settings set;
+    static String lang;
 
-    static String lang = set.Load();
-    public static boolean isJDK(){
-        try{
+    public static boolean isJDK() {
+        try {
             Class.forName("com.sun.tools.javac.Main");
             return true;
-        }catch (ClassNotFoundException c){
+        }
+        catch (ClassNotFoundException c) {
             return false;
         }
     }
-    public static void main(String[] args){
+
+    public static void main(String[] args) {
         l langstr = new l();
-        if(isJDK()){
-            s = new TheWindow();
-        }else{
+        if (Main.isJDK()) {
+            s = new TheWindow(true);
+        } else {
+            s = new TheWindow(false);
             try {
-                JOptionPane.showMessageDialog(null,langstr.ls[l.getlangnum(lang,true)][0]);
-            } finally {
+                JOptionPane.showMessageDialog(null, langstr.ls[l.getlangnum(lang, true)][0]);
+            }
+            finally {
                 System.exit(1);
             }
         }
+    }
+
+    static {
+        set = new Settings(new File("Settings.txt"));
+        lang = set.Load();
     }
 }

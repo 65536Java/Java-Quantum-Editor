@@ -1,5 +1,6 @@
 package assets;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.tools.*;
 import java.awt.*;
@@ -10,24 +11,21 @@ import java.io.*;
 
 
 public class TheWindow extends JFrame {
-    static {
-        Main.set.Load();
-    }
+
+    JPanel codep = new JPanel();
     JMenuBar jm = new JMenuBar();
     JPanel japan = new JPanel();
     JMenu[] jms = new JMenu[]{
             new JMenu("File")
     };
     JPanel con = new JPanel();
-    JLabel co = new JLabel("Console");
-    JMenuItem[] jmis = new JMenuItem[]{
-            new JMenuItem("save")
-    };
+    JLabel co = new JLabel("CONSOLE");
+    JLabel codelab = new JLabel("CODE");
     l ls = new l();
-    JTextArea Console = new JTextArea("This is console.",30,50);
+    JTextArea Console = new JTextArea("",30,50);
     JavaCompiler jcr = ToolProvider.getSystemJavaCompiler();
     public final String author = "iert_MCPL";
-    public final String ver = "Beta 1.12.17";
+    public final String ver = "Beta 1.13.5";
     JScrollPane CP = new JScrollPane(Console);
     JButton settings;
     JButton load;
@@ -85,6 +83,7 @@ public class TheWindow extends JFrame {
         char[] a = new char[]{};
         StringBuffer sb = new StringBuffer();
         try {
+            if(this.f == null) return null;
             fw = new FileWriter(f);
         }
         catch (Exception exception) {
@@ -99,25 +98,21 @@ public class TheWindow extends JFrame {
         return f;
     }
     public static String fread(File ff){
-        FileReader fr = null;
         try {
+            FileReader fr = null;
             fr = new FileReader(ff);
-        }
-        catch (Exception exception) {
-
-        }
-        char[] a = new char[]{};
-        StringBuffer sb = new StringBuffer();
-        try {
+            char[] a = new char[]{};
+            StringBuffer sb = new StringBuffer();
             BufferedReader bf = new BufferedReader(fr);
             String line;
             while ((line = bf.readLine()) != null) {
                 sb.append(line+"\n");
             }
-        } catch (IOException e) {
-
+            return sb.toString();
         }
-        return sb.toString();
+        catch (Exception exception) {
+            return null;
+        }
     }
     private void compile(){
         Console.setText("");
@@ -152,7 +147,15 @@ public class TheWindow extends JFrame {
             JOptionPane.showMessageDialog( null,"Compilation failed!","Java Compiler",JOptionPane.ERROR_MESSAGE);
         }
     }
-    public TheWindow(){
+    public TheWindow(boolean shown){
+        /*try {
+            InputStream icons = this.getClass().getResourceAsStream("images/icon.png");
+            Image ico = ImageIO.read(icons);
+            this.setIconImage(ico);
+        } catch (Exception e) {
+
+        }*/
+        if(!shown){return;}
         this.setBackground(Color.darkGray);
         codeBar.setAutoscrolls(true);
         save = new JButton(ls.ls[l.getlangnum(Main.lang,false)][3]);
@@ -168,7 +171,6 @@ public class TheWindow extends JFrame {
         run.setEnabled(Main.isJDK());
         codes.setFont(new Font(Font.SANS_SERIF,Font.BOLD,20));
         codeBar.setViewportView(codes);
-        
         this.setTitle("Java Quantum Editor v"+ver+" by YouTube:"+author);
         codes.setFont(new Font(Font.SANS_SERIF,Font.BOLD,13));
         this.setSize(1000,800);
@@ -179,6 +181,7 @@ public class TheWindow extends JFrame {
                 System.exit(0);
             }
         });
+        Console.setAutoscrolls(true);
         load.addActionListener((ActionEvent e)->{
             JFileChooser jf = new JFileChooser();
             FileReader fr = null;
@@ -196,9 +199,7 @@ public class TheWindow extends JFrame {
         });
         this.CP.setViewportView(Console);
         this.setLayout(new BorderLayout());
-
         codeBar.setLocation(this.getWidth() / 2,this.getHeight() / 2);
-
         compile.addActionListener((ActionEvent e)->{
             compile();
         } );
@@ -237,11 +238,13 @@ public class TheWindow extends JFrame {
         settings.addActionListener((actionEvent)->{
             new SettingsUI();
         });
-        /*for(JMenu j : jms){
-            jm.add(j);
-        }*/
+        codelab.setFont(new Font(Font.SANS_SERIF,Font.ITALIC,15));
+        codes.setFont(new Font(Font.MONOSPACED,Font.BOLD,14));
+        codep.setLayout(new BorderLayout());
+        codep.add(codeBar,BorderLayout.CENTER);
+        codep.add(codelab,BorderLayout.NORTH);
         con.add(CP,BorderLayout.CENTER);
-        this.add(codeBar,BorderLayout.CENTER);
+        this.add(codep,BorderLayout.CENTER);
         this.add(con,BorderLayout.EAST);
         japan.add(load);
         japan.add(save);
