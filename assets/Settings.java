@@ -10,6 +10,19 @@ public class Settings {
         if(!sf.exists()){
             try {
                 sf.createNewFile();
+                FileWriter fw = null;
+                try {
+                    fw = new FileWriter(sf);
+                } catch (IOException e) {
+
+                }
+                BufferedWriter bw = new BufferedWriter(fw);
+                try {
+                    bw.write("zh");
+                    bw.flush();
+                    bw.close();
+                } catch (IOException e) {
+                }
             } catch (IOException e) {
                 Save();
             }

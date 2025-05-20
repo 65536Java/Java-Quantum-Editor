@@ -11,27 +11,25 @@ import java.io.*;
 
 
 public class TheWindow extends JFrame {
-
+    JPanel mainp = new JPanel();
     JPanel codep = new JPanel();
-    JMenuBar jm = new JMenuBar();
     JPanel japan = new JPanel();
-    JMenu[] jms = new JMenu[]{
-            new JMenu("File")
-    };
     JPanel con = new JPanel();
     JLabel co = new JLabel("CONSOLE");
     JLabel codelab = new JLabel("CODE");
     l ls = new l();
     JTextArea Console = new JTextArea("",30,50);
     JavaCompiler jcr = ToolProvider.getSystemJavaCompiler();
-    public final String author = "iert_MCPL";
-    public final String ver = "Beta 1.13.5";
+    //public final String author = "iert_MCPL";
+    public final String ver = "Beta 1.13.20";
     JScrollPane CP = new JScrollPane(Console);
     JButton settings;
     JButton load;
     JButton run;
     JButton compile;
     JButton save;
+    JButton stop;
+    boolean stopping = false;
     JTextArea codes = new JTextArea("""
             public class Main{
                 public static void main(String[] args)    {
@@ -55,7 +53,7 @@ public class TheWindow extends JFrame {
         try {
             fw = new FileWriter(f);
         }
-        catch (Exception exception) {
+        catch (Exception _) {
 
         }
         if(mode == "get" && this.f != null){
@@ -67,26 +65,23 @@ public class TheWindow extends JFrame {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
             return this.f;
         }
         JFileChooser jf = new JFileChooser();
         jf.showDialog( null,"Save");
         this.f = jf.getSelectedFile();
-        if(this.f.getPath() == "" || this.f == null){this.f = null;return this.f;}
-        File f = new File(this.f.getPath());
+        if(this.f == null)return null;
         if(!f.exists()){
             try{
                 f.createNewFile();
-            }catch (Throwable t){}
+            }catch (Throwable _){}
         }
         char[] a = new char[]{};
-        StringBuffer sb = new StringBuffer();
         try {
             if(this.f == null) return null;
             fw = new FileWriter(f);
         }
-        catch (Exception exception) {
+        catch (Exception _) {
 
         }
         try {
@@ -94,14 +89,13 @@ public class TheWindow extends JFrame {
             bf.write(codes.getText());
             bf.flush();
             bf.close();
-        } catch (IOException e) {}
+        } catch (IOException _) {}
         return f;
     }
     public static String fread(File ff){
         try {
-            FileReader fr = null;
+            FileReader fr;
             fr = new FileReader(ff);
-            char[] a = new char[]{};
             StringBuffer sb = new StringBuffer();
             BufferedReader bf = new BufferedReader(fr);
             String line;
@@ -127,6 +121,7 @@ public class TheWindow extends JFrame {
                     compile.setEnabled(false);
                     while ((line = reader.readLine()) != null) {
                         Console.append(line+"\n");
+
                     }
                     int exitCode = process.waitFor();
                     Console.append("\n\n\n[Java Compiler] Exited with code: " + exitCode);
@@ -139,25 +134,18 @@ public class TheWindow extends JFrame {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        File m = saveAs("get");
         int res = jcr.run( null, null, null,this.f.getPath());
         if (res == 0) {
             JOptionPane.showMessageDialog( null,"Compilation successful!","Java Compiler",JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog( null,"Compilation failed!","Java Compiler",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog( null,"Compilation failed!\nPlease see console!","Java Compiler",JOptionPane.ERROR_MESSAGE);
         }
     }
     public TheWindow(boolean shown){
-        /*try {
-            InputStream icons = this.getClass().getResourceAsStream("images/icon.png");
-            Image ico = ImageIO.read(icons);
-            this.setIconImage(ico);
-        } catch (Exception e) {
-
-        }*/
         if(!shown){return;}
         this.setBackground(Color.darkGray);
         codeBar.setAutoscrolls(true);
+        stop = new JButton(ls.ls[l.getlangnum(Main.lang,false)][11]);
         save = new JButton(ls.ls[l.getlangnum(Main.lang,false)][3]);
         run = new JButton(ls.ls[l.getlangnum(Main.lang,false)][2]);
         load = new JButton(ls.ls[l.getlangnum(Main.lang,false)][4]);
@@ -171,7 +159,7 @@ public class TheWindow extends JFrame {
         run.setEnabled(Main.isJDK());
         codes.setFont(new Font(Font.SANS_SERIF,Font.BOLD,20));
         codeBar.setViewportView(codes);
-        this.setTitle("Java Quantum Editor v"+ver+" by YouTube:"+author);
+        this.setTitle("Java Quantum Editor v"+ver);
         codes.setFont(new Font(Font.SANS_SERIF,Font.BOLD,13));
         this.setSize(1000,800);
         this.addWindowListener(new WindowAdapter() {
@@ -181,7 +169,6 @@ public class TheWindow extends JFrame {
                 System.exit(0);
             }
         });
-        Console.setAutoscrolls(true);
         load.addActionListener((ActionEvent e)->{
             JFileChooser jf = new JFileChooser();
             FileReader fr = null;
@@ -195,7 +182,7 @@ public class TheWindow extends JFrame {
             } catch (Exception ex) {}
             try {
                 fr.close();
-            } catch (Exception ex) {}
+            } catch (Exception _) {}
         });
         this.CP.setViewportView(Console);
         this.setLayout(new BorderLayout());
@@ -219,10 +206,18 @@ public class TheWindow extends JFrame {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     String line;
                     try{
+                        stop.setEnabled(true);
                         run.setEnabled(false);
                         while ((line = reader.readLine()) != null) {
                             Console.append(line+"\n");
+                            if(stopping){
+                                process.destroy();
+                                Console.append("[System message] Process was destoryed");
+                                stopping = false;
+                                break;
+                            }
                         }
+                        stop.setEnabled(false);
                         int exitCode = process.waitFor();
                         Console.append("\n\n\n[Java Virtual Machine] Exited with code: " + exitCode);
                         run.setEnabled(true);
@@ -238,29 +233,40 @@ public class TheWindow extends JFrame {
         settings.addActionListener((actionEvent)->{
             new SettingsUI();
         });
+        stop.addActionListener((e) -> {
+            stopping = true;
+        });
+        stop.setEnabled(false);
+        Console.setEditable(false);
         codelab.setFont(new Font(Font.SANS_SERIF,Font.ITALIC,15));
         codes.setFont(new Font(Font.MONOSPACED,Font.BOLD,14));
         codep.setLayout(new BorderLayout());
         codep.add(codeBar,BorderLayout.CENTER);
         codep.add(codelab,BorderLayout.NORTH);
         con.add(CP,BorderLayout.CENTER);
-        this.add(codep,BorderLayout.CENTER);
-        this.add(con,BorderLayout.EAST);
         japan.add(load);
         japan.add(save);
-        Console.setEditable(false);
         japan.add(run);
+        japan.add(stop);
         japan.add(compile);
         japan.add(settings);
         japan.setBackground(Color.GRAY);
+        mainp.setLayout(new BorderLayout());
+        codeBar.setAutoscrolls(true);
+        CP.setAutoscrolls(true);
+        mainp.add(codep,BorderLayout.NORTH);
+        mainp.add(con,BorderLayout.CENTER);
+        this.add(mainp,BorderLayout.CENTER);
         this.add(japan,BorderLayout.NORTH);
         this.setVisible(true);
     }
+    //Refresh button texts
     public void Ref(){
-        save.setText(ls.ls[l.getlangnum(Main.lang,false)][3]);
-        run.setText(ls.ls[l.getlangnum(Main.lang,false)][2]);
-        load.setText(ls.ls[l.getlangnum(Main.lang,false)][4]);
+        stop.setText(ls.ls[l.getlangnum(Main.lang,false)][11]);
         compile.setText(ls.ls[l.getlangnum(Main.lang,false)][1]);
+        run.setText(ls.ls[l.getlangnum(Main.lang,false)][2]);
+        save.setText(ls.ls[l.getlangnum(Main.lang,false)][3]);
+        load.setText(ls.ls[l.getlangnum(Main.lang,false)][4]);
         settings.setText(ls.ls[l.getlangnum(Main.lang,false)][5]);
     }
 }

@@ -17,7 +17,11 @@ public class l {
                     "加載",
                     "設定...",
                     "基本",
-                    "已套用變更"
+                    "已套用變更",
+                    "連結",
+                    "作者的Youtube頻道",
+                    "此程式嘗試在您的瀏覽器打開一個網頁(%s)，您要允許此操作嗎?",
+                    "停止"
             },
             new String[]{
                     "JDK is required.",
@@ -27,7 +31,11 @@ public class l {
                     "Load",
                     "Settings...",
                     "Basic",
-                    "Changes was applied."
+                    "Changes was applied.",
+                    "Links",
+                    "Author's Youtube channel",
+                    "This app is try to open a website in your browser(%s), are you accept the action?",
+                    "Stop"
             }
     };
 }

@@ -1,7 +1,6 @@
 
 package assets;
 
-
 import java.io.File;
 import javax.swing.JOptionPane;
 
@@ -9,7 +8,6 @@ public class Main {
     public static TheWindow s;
     public static Settings set;
     static String lang;
-
     public static boolean isJDK() {
         try {
             Class.forName("com.sun.tools.javac.Main");
