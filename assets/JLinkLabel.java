@@ -9,13 +9,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class JLinkLabel extends JLabel {
-
     private String url;
     l ll = new l();
     public JLinkLabel(String text, String url,Font f) {
-        super(String.format("<html><a href='%s'>%s</a></html>", url, text));
         this.setFont(f);
-        this.url = url;
+        this.setLink(text,url);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
             @Override
@@ -23,7 +21,7 @@ public class JLinkLabel extends JLabel {
                 int ret = JOptionPane.showConfirmDialog(null, String.format(ll.ls[l.getlangnum(Main.lang, false)][10], url),"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                 if(ret == 1)return;
                 try {
-                    Desktop.getDesktop().browse(new URI(JLinkLabel.this.url));
+                    Desktop.getDesktop().browse(new URI(getURL()));
                 } catch (IOException | URISyntaxException ex) {
                     ex.printStackTrace();
                 }
