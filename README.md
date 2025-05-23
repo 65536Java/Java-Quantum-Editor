@@ -1,6 +1,5 @@
 # Java Quantum Editor
-![Download]('https://img.shields.io/badge/Download%20latest-green
-')
+![Download](https://img.shields.io/badge/Download%20latest-green)
 <a href="https://github.com/65536Java/Java-Quantum-Editor/releases/download/Beta1.13.20.72EBF/b1.13.20.72EBF.jar">
   <button>Click to download latest version!</button>
 </a><br>
