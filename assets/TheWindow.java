@@ -1,7 +1,9 @@
 package assets;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 import javax.tools.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -11,6 +13,7 @@ import java.io.*;
 
 
 public class TheWindow extends JFrame {
+    private static final int INDENT_SPACES = 4; // 定義一個縮排單位為 4 個空格
     JPanel mainp = new JPanel();
     JPanel codep = new JPanel();
     JPanel japan = new JPanel();
@@ -21,7 +24,7 @@ public class TheWindow extends JFrame {
     JTextArea Console = new JTextArea("", 30, 50);
     JavaCompiler jcr = ToolProvider.getSystemJavaCompiler();
     //public final String author = "iert_MCPL";
-    public final String ver = "Beta 1.13.20.72 (Emergency bug fixes)";
+    public final String ver = "Release v1.0";
     JScrollPane CP = new JScrollPane(Console);
     JButton settings;
     JButton load;
@@ -50,8 +53,7 @@ public class TheWindow extends JFrame {
     File f = null;
 
     private File saveAs(String mode) {
-
-        if (mode == "save") {
+        if (mode == "save" || this.f == null) {
             JFileChooser jf = new JFileChooser();
             int result = jf.showDialog(this, "Save");
             this.f = jf.getSelectedFile();
@@ -152,11 +154,77 @@ public class TheWindow extends JFrame {
             JOptionPane.showMessageDialog(null, "Compilation failed!\nPlease see console!", "Java Compiler", JOptionPane.ERROR_MESSAGE);
         }
     }
+    private void autoIndentInition(){
+        System.out.println("Initializing auto indent...");
+        codes.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                try {
+                    run.setEnabled(codes.getText().contains("public static void main(String[] "));
+                    if (e.getLength() == 1 && "\n".equals(e.getDocument().getText(e.getOffset(), 1))) {
+                        SwingUtilities.invokeLater(() -> {
+                            try {
+                                int caretPosition = codes.getCaretPosition(); // 當前游標位置
+                                int lineNumber = codes.getLineOfOffset(caretPosition - 1);
+                                int startOfPrevLine = codes.getLineStartOffset(lineNumber);
+                                int endOfPrevLine = codes.getLineEndOffset(lineNumber);
+                                int currentIndent = 0;
 
+                                String prevLine = codes.getText(startOfPrevLine, endOfPrevLine - startOfPrevLine);
+                                String trimmedPrevLine = prevLine.trim();
+
+
+                                for (int i = 0; i < prevLine.length(); i++) {
+                                    char c = prevLine.charAt(i);
+                                    if (c == ' ') {
+                                        currentIndent++;
+                                    } else if (c == '\t') {
+                                        currentIndent += INDENT_SPACES;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                                int newIndent = currentIndent;
+                                if (trimmedPrevLine.endsWith("{") || trimmedPrevLine.endsWith("(")) {
+                                    newIndent += INDENT_SPACES;
+                                } else if (trimmedPrevLine.endsWith("}") || trimmedPrevLine.endsWith(");") || trimmedPrevLine.endsWith(";") || trimmedPrevLine.equals("break;") || trimmedPrevLine.equals("return;") || trimmedPrevLine.equals("continue;")) {
+                                    if (trimmedPrevLine.equals("}")) {
+                                        newIndent -= INDENT_SPACES;
+                                        if (newIndent < 0) newIndent = 0;
+                                    }
+                                }
+
+                                StringBuilder indentString = new StringBuilder();
+                                for (int i = 0; i < newIndent; i++) {
+                                    indentString.append(' ');
+                                }
+                                codes.insert(indentString.toString(), caretPosition);
+                            } catch (BadLocationException ex) {
+
+                            }
+                        });
+                    }
+                } catch (BadLocationException ex) {
+
+                }
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                run.setEnabled(codes.getText().contains("public static void main(String[] "));
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                run.setEnabled(codes.getText().contains("public static void main(String[] "));
+            }
+        });
+    }
     public TheWindow(boolean shown) {
         if (!shown) {
             return;
         }
+        autoIndentInition();
         this.setBackground(Color.darkGray);
         codeBar.setAutoscrolls(true);
         stop = new JButton(ls.ls[l.getlangnum(Main.lang, false)][11]);
@@ -173,7 +241,7 @@ public class TheWindow extends JFrame {
         run.setEnabled(Main.isJDK());
         codes.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
         codeBar.setViewportView(codes);
-        this.setTitle("Java Quantum Editor v" + ver);
+        this.setTitle("Java Quantum Editor " + ver);
         codes.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
         this.setSize(1000, 800);
         this.addWindowListener(new WindowAdapter() {
@@ -199,6 +267,7 @@ public class TheWindow extends JFrame {
                 fr.close();
             } catch (Exception _) {
             }
+            run.setEnabled(codes.getText().contains("public static void main(String[] "));
         });
         this.CP.setViewportView(Console);
         this.setLayout(new BorderLayout());
@@ -211,6 +280,7 @@ public class TheWindow extends JFrame {
         codes.setEditable(true);
         save.addActionListener((ActionEvent e) -> {
             saveAs("save");
+            run.setEnabled(codes.getText().contains("public static void main(String[] "));
         });
         run.addActionListener((ActionEvent e) -> {
             Console.setText("");
