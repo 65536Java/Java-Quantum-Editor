@@ -1,27 +1,37 @@
 package assets;
 
+import assets.libs.Settings;
+import assets.libs.tools.SettingsTool;
+import assets.libs.gui.JLinkLabel;
+import assets.libs.tools.LanguageTools;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Objects;
+
 
 public class SettingsUI extends JFrame {
-    l ll = new l();
-    Settings set = Main.set;
-    JButton DoneLan = new JButton("Done");
-    JLabel lan = new JLabel("Languages:");
-    JComboBox<String> jcb = new JComboBox<>();
-    JPanel sp0 = new JPanel();
-    JPanel linksp = new JPanel();
-    JButton abtn = new JButton(ll.ls[l.getlangnum(Main.lang,false)][8]);
-    JPanel p = new JPanel(new BorderLayout());
-    JButton Basic = new JButton(ll.ls[l.getlangnum(Main.lang,false)][6]);
-    void vf(){this.setVisible(false);}
+    final LanguageTools LT = new LanguageTools();
+    LayoutManager layout = new GridBagLayout();
+    SettingsTool set = Main.set;
+    JButton done = new JButton("Done");
+    JLabel lan = new JLabel(LT.translateWithArray("Languages:", Main.language));
+    JComboBox<String> selectLanguage = new JComboBox<>();
+    //JPanel settings1 = new JPanel(new BorderLayout());
+    JPanel settings1Panel0 = new JPanel();
+    JPanel linksPanel1 = new JPanel();
+    JButton abtn = new JButton(LT.translateWithArray("Links", Main.language));
+    JPanel settingsPanel = new JPanel(new BorderLayout());
+    JButton basic = new JButton(LT.translateWithArray("Basic", Main.language));
+    JButton update = new JButton(LT.translateWithArray("Check for updates", Main.language));
+    void vf() {
+        this.setVisible(false);
+    }
     public SettingsUI(){
         initGui();
-        initAction();
+        initActions();
         this.setTitle("Java Quantum Editor: Settings");
         this.addWindowListener(new WindowAdapter() {
             @Override
@@ -33,50 +43,56 @@ public class SettingsUI extends JFrame {
         this.setVisible(true);
     }
     void initGui(){
-        JLabel Title = new JLabel(ll.ls[l.getlangnum(Main.lang,false)][8]);
+        JLabel Title = new JLabel(LT.translateWithArray("Links", Main.language));
         Title.setFont(new Font(Font.SERIF,Font.BOLD,17));
-        if(Objects.equals(Main.lang, "zh")){
-            jcb.addItem("繁體中文");
-            jcb.addItem("English");
+        if(Main.language.contains("繁體中文")){
+            selectLanguage.addItem("繁體中文");
+            selectLanguage.addItem("English");
         }else {
-            jcb.addItem("English");
-            jcb.addItem("繁體中文");
+            selectLanguage.addItem("English");
+            selectLanguage.addItem("繁體中文");
         }
-        lan.setFont(new Font(Font.SERIF,Font.ITALIC,20));
-        p.add(Basic,BorderLayout.WEST);
-        p.add(abtn,BorderLayout.CENTER);
-        sp0.add(lan);
-        sp0.add(jcb);
-        sp0.add(DoneLan);
-        sp0.setVisible(false);
-        linksp.add(Title);
-        linksp.add(new JLinkLabel(ll.ls[l.getlangnum(Main.lang,false)][9],"https://reurl.cc/W0MKR5",new Font(Font.DIALOG_INPUT, Font.ITALIC,30)));
-        linksp.setVisible(false);
-        this.add(p, BorderLayout.NORTH);
+        lan.setFont(new Font(Font.DIALOG_INPUT,Font.BOLD,20));
+        settingsPanel.setLayout(layout);
+        settingsPanel.setBackground(Color.GRAY);
+        settingsPanel.add(basic);
+        settingsPanel.add(abtn);
+        settings1Panel0.setSize(10,Main.s.getHeight());
+        settings1Panel0.setLayout(new GridBagLayout());
+        settings1Panel0.setBorder(null);
+        settings1Panel0.add(lan);
+        settings1Panel0.add(selectLanguage);
+        settings1Panel0.setVisible(false);
+        //settings1.add(settings1Panel0, BorderLayout.NORTH);
+        linksPanel1.setLayout(layout);
+        linksPanel1.add(Title);
+        linksPanel1.add(new JLinkLabel(LT.translateWithArray("Author's Youtube channel", Main.language),"https://reurl.cc/W0MKR5",new Font(Font.DIALOG_INPUT, Font.ITALIC,30)));
+        linksPanel1.setVisible(false);
+        this.add(settingsPanel, BorderLayout.NORTH);
+        this.add(done,BorderLayout.SOUTH);
     }
-    void initAction(){
-        DoneLan.addActionListener((ActionEvent e)-> {
-            if(jcb.getSelectedItem() == "繁體中文"){
-                Main.lang = "zh";
-            }else {
-                Main.lang = "en";
-            }
-            set.Save();
-            Main.s.Ref();
-            JOptionPane.showMessageDialog(null,ll.ls[l.getlangnum(Main.lang,false)][7]);
+    private void initActions(){
+        done.addActionListener((ActionEvent event)-> {
+            Main.language = (String)selectLanguage.getSelectedItem();
+            set.save(new Settings(Main.language));
+            Main.s.refreshUI();
+            JOptionPane.showMessageDialog(null, LT.translateWithArray("Changes was applied.", Main.language));
             vf();
         });
-        Basic.addActionListener((event)->{
-            this.add(sp0,BorderLayout.CENTER);
-            sp0.setVisible(true);
-            remove(linksp);
-            linksp.setVisible(false);
+        basic.addActionListener((event)->{
+            this.add(settings1Panel0,BorderLayout.CENTER);
+            remove(linksPanel1);
+            settings1Panel0.setVisible(true);
+            linksPanel1.setVisible(false);
         } );
-        abtn.addActionListener((e)->{
-            this.add(linksp,BorderLayout.CENTER);
-            remove(sp0);
-            linksp.setVisible(true);
-            sp0.setVisible(false);
+        abtn.addActionListener((event)->{
+            this.add(linksPanel1,BorderLayout.CENTER);
+            remove(settings1Panel0);
+            linksPanel1.setVisible(true);
+            settings1Panel0.setVisible(false);
+        });
+        update.addActionListener((event)->{
+            JOptionPane.showMessageDialog(null,"Coming soon!");
         });
     }
 }
