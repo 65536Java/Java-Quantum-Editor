@@ -11,6 +11,7 @@ import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
 import java.io.*;
 import assets.enums.EnumSaveMode;
+import assets.libs.gui.AutoScrollTextArea;
 
 import static assets.libs.tools.FileTools.fread;
 
@@ -29,7 +30,7 @@ public class TheWindow extends JFrame {
     JPanel con = new JPanel();
     JLabel co = new JLabel("CONSOLE");
     JLabel codelab = new JLabel("CODE");
-    JTextArea console = new JTextArea("", 50, 50);
+    AutoScrollTextArea console = new AutoScrollTextArea("", 50, 50);
 
     public final String ver = "Release v1.1";
     JScrollPane CP = new JScrollPane(console);
@@ -259,10 +260,9 @@ public class TheWindow extends JFrame {
             console.setText("");
             File saved = this.save(EnumSaveMode.GETFILE,codes.getText());
             try (FileWriter start = new FileWriter(new File(String.format("%s/Start.bat", saved.getParent())))){
-                start.write(String.format("java \"%s\"\npause",saved.getName()));
+                start.write(String.format("@ECHO OFF\njava \"%s\"\npause",saved.getName()));
                 console.append(String.format("[System message] generated \"Start.bat\" in \"%s\"\n",saved.getParent()));
                 stopping = false;
-                //if(codes.getText().contains("System.in") || codes.getText().contains("read") || codes.getText().contains("Frame("))
                 ProcessBuilder processBuilder = new ProcessBuilder("java", saved.getPath());
                 processBuilder.redirectErrorStream(true);
                 Process process = processBuilder.start();
